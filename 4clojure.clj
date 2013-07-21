@@ -69,3 +69,24 @@
                                     (sum-of-digits [n]
                                       (apply + (map #(* % %) (num2digits n))))]
                               (count (filter #(= % true) (map < lst (map sum-of-digits lst)))))))
+
+(def replicate-sequence (fn [lst n]
+                          (letfn [(splice [src items]
+                                    (if (= 0 (count items))
+                                      src
+                                      (splice (conj src (first items)) (rest items))))]
+                            (loop [i 0 result '()]
+                              (if (> i (dec (count lst)))
+                                (reverse result)
+                                (recur (inc i) (splice result (repeat n (nth lst i)))))))))
+
+(def replicate-seq-shorter (fn [lst n]
+                             (loop [i 0 result '()]
+                               (if (> i (dec (count lst)))
+                                 result
+                                 (recur (inc i) (concat result (repeat n (nth lst i))))))))
+
+(defn splice [src items]
+  (if (= 0 (count items))
+    src
+    (splice (conj src (first items)) (rest items))))
