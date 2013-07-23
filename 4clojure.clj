@@ -91,4 +91,84 @@
     src
     (splice (conj src (first items)) (rest items))))
 
-    ;;;; some change in virtualbox
+(def recog-card (fn [card]
+                   (let [suit {"C" :club "D" :diamond "H" :heart "S" :spade}
+                         rank {"2" 0 "3" 1 "4" 2 "5" 3 "6" 4 "7" 5 "8" 6 "9" 7 "T" 8 "J" 9 "Q" 10 "K" 11 "A" 12}
+                         card-suit (subs card 0 1)
+                         card-rank (subs card 1 2)]
+                     (hash-map :suit (suit card-suit) :rank (rank card-rank)))))
+
+;;; broken
+(def infix-calc (fn infcalc [& args]
+                  (if (= (count args) 3)
+                    (apply (nth args 1) (list (nth args 0) (nth args 2)))
+                    (apply (infcalc (flatten (list (infcalc (reverse (nthrest (reverse args) 2))) (nthrest args 3))))))))
+
+;;; broken
+(defn infcalc [& args]
+  (if (= (count args) 3)
+    (apply (nth args 1) (list (nth args 0) (nth args 2)))
+    (apply infcalc (into [] (flatten (list (infcalc (reverse (nthrest (reverse args) (- (count args) 3)))) (nthrest args 3)))))))
+
+(defn compress [lst]
+  (letfn [(rec [lst acc]
+            (if (empty? lst)
+              acc
+              (rec (rest lst) (if (not (= (first acc) (first lst))) (cons (first lst) acc) acc))))]
+    (reverse (rec lst '()))))
+
+(defn num2digits [n]
+  (map read-string (map str (seq (str n)))))
+
+(defn product-digits [a b]
+  (letfn [(num2digits [n]
+            (map read-string (map str (seq (str n)))))]
+    (into [] (num2digits (* a b)))))
+
+(defn my-range [a b]
+  (take (- b a) (iterate #(+ 1 %) a)))
+
+(defn my-subseq [lst start end]
+  (let [remove-from-end (- (count lst) end)
+        reversed (reverse lst)
+        reversed-minus-tail (nthrest reversed remove-from-end)]
+    (nthrest (reverse reversed-minus-tail) start)))
+
+(defn my-part2 [n source]
+  (letfn [(my-partition [n source]
+            (letfn [(mysubseq [lst start end]
+            (let [remove-from-end (- (count lst) end)
+                  reversed (reverse lst)
+                  reversed-minus-tail (nthrest reversed remove-from-end)]
+              (nthrest (reverse reversed-minus-tail) start)))
+          
+          (rec [source acc]
+            (let [rest (nthrest source n)]
+              (if (not (empty? rest))
+                (rec rest (cons (mysubseq source 0 n) acc))
+                (reverse (cons source acc)))))]
+    (if (not (empty? source)) (rec source nil) nil)))]
+    (filter #(= n (count %)) (my-partition n source))))
+
+(defn my-subseq2 [lst a b]
+  (take (- b a) (drop a lst)))
+
+(defn my-dupl [lst]
+  (letfn [(rec [lst acc]
+            (if (empty? lst)
+              acc
+              (rec (rest lst) (cons (first lst) (cons (first lst) acc)))))]
+    (reverse (rec lst '()))))
+
+;;; juxt  subvec
+
+(defn drop-nth [lst n]
+  (loop [i 1
+         x lst
+         result []]
+    (if (empty? x)
+      result
+      (recur (inc i) (rest x)
+             (if (not (= (mod i n) 0))
+               (conj result (first x))
+               result)))))
