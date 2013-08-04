@@ -172,3 +172,9 @@
              (if (not (= (mod i n) 0))
                (conj result (first x))
                result)))))
+
+(def interl (fn [lsta lstb]
+  (letfn [(interl-iter [a b result]
+            (if (or (empty? a) (empty? b)) result
+                (interl-iter (rest a) (rest b) (cons (first b) (cons (first a) result)))))]
+    (reverse (interl-iter lsta lstb '())))))
