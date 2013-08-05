@@ -86,6 +86,13 @@
                                  result
                                  (recur (inc i) (concat result (repeat n (nth lst i))))))))
 
+;;; not lazy
+(def my-iterate (fn [f x]
+                  (loop [i 0 result (list x)]
+                    (if (> i 101)
+                      result
+                      (recur (inc i) (concat result (list (f (last result)))))))))
+
 (defn splice [src items]
   (if (= 0 (count items))
     src
@@ -173,8 +180,90 @@
                (conj result (first x))
                result)))))
 
-(def interl (fn [lsta lstb]
+(def my-interleave (fn [lsta lstb]
   (letfn [(interl-iter [a b result]
             (if (or (empty? a) (empty? b)) result
                 (interl-iter (rest a) (rest b) (cons (first b) (cons (first a) result)))))]
     (reverse (interl-iter lsta lstb '())))))
+
+(def indexing-seq (fn [lst]
+                    (letfn [(make-pair [a b] (cons a (cons b '())))]
+                      (loop [i (dec (count lst)) rem lst result '()]
+                        (if (empty? rem)
+                          result
+                          (recur (dec i) (butlast rem) (cons (make-pair (last rem) i) result)))))))
+
+(def find-distinct (fn [lst]
+                     (letfn [(find-dist-iter [input seen output]
+                               (if (empty? input)
+                                 output
+                                 (find-dist-iter (rest input)
+                                                 (cons (first input) seen)
+                                                 (if (some #(= (first input) %) seen)
+                                                   output
+                                                   (conj output (first input))))))]
+                       (find-dist-iter lst [] []))))
+
+(defn get-divisors [n]
+  (if (= n 1)
+    [1]
+    ;; first divisor plus get-divisors of (/ n first-divisor)
+    (letfn [(test-div [i n]
+              (= (mod n i) 0))]
+      (loop [i 2]
+        (if (test-div i n)
+          (cons i (get-divisors (/ n i)))
+          (recur (inc i)))))))
+
+(def perfect-nums (fn [n]
+                    (loop [i 1 divs []]
+                      (if (> i (dec n))
+                        (= n (reduce + divs))
+                        (recur (inc i) (if (= (mod n i) 0)
+                                       (conj divs i)
+                                       divs))))))
+
+(def my-juxt (fn
+               ([f]
+                  (fn
+                    ([] [(f)])
+                    ([x] [(f x)])
+                    ([x y] [(f x y)])))
+               ([f g]
+                  (fn
+                    ([] [(f) (g)])
+                    ([x] [(f x) (g x)])))
+               ([f g h]
+                  (fn
+                    ([a b c d e q] [(f a b c d e q) (g a b c d e q) (h a b c d e q)])
+                    ([a b c] [(f a b c) (g a b c) (h a b c)])))))
+
+(def map-constr (fn map-constr-rec [k v]
+                  (if (or (empty? k) (empty? v))
+                    (hash-map)
+                    (assoc (map-constr-rec (rest k) (rest v)) (first k) (first v)))))
+
+(def my-set-intersect (fn [m n]
+                        (letfn [(build-inters [m n res]
+                                  (if (empty? m)
+                                    res
+                                    (build-inters (rest m) n (if (some #(= (first m) %) n) (conj res (first m)) res))))]
+                          (build-inters m n #{}))))
+
+(def is-tree (fn [x]
+               (letfn [(single? [n] (not (coll? n)))]
+                 (if (= (count x) 3)
+                   (if 
+                       (and (single? (first x))
+                            (or (single? (nth x 1)) (is-tree (nth x 1)))
+                            (or (single? (nth x 2)) (is-tree (nth x 2))))
+                     true
+                     false)
+                   false))))
+
+(def pascal-tri (fn [n]
+                  (cond (= n 1) [1]
+                        (= n 2) [1 1]
+                        true (let [prev-row (pascal-tri (dec n))]
+                               (flatten (conj [1] (map + (butlast prev-row)
+                                                       (rest prev-row)) [1]))))))
