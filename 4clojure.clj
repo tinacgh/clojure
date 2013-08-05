@@ -267,3 +267,28 @@
                         true (let [prev-row (pascal-tri (dec n))]
                                (flatten (conj [1] (map + (butlast prev-row)
                                                        (rest prev-row)) [1]))))))
+
+(defn pos-int
+  ([] (pos-int 1))
+  ([n] (cons n (lazy-seq (pos-int (inc n))))))
+
+(def my-map (fn mmap [f s]
+              (if (empty? s) '()
+                  (cons (f (first s)) (lazy-seq (mmap f (rest s)))))))
+
+;;; 6artek's solution
+(def pascal-tri6 (fn pt [n]
+                   (if (= n 1)
+                     [1]
+                     (let [prev (pt (dec n))]
+                       (vec
+                        (map + (cons 0 prev) (conj prev 0)))))))
+
+(defn trap-one [n]
+  (map + (cons 0 n) (conj n 0)))
+
+
+;;; need +' for arbitrary length integers
+(def pascal-trap (fn pt [n]
+                   (let [next (map +' (cons 0 n) (conj (into [] n) 0))]
+                     (cons n (lazy-seq (pt next))))))
